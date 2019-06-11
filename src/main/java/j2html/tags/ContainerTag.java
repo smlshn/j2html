@@ -194,5 +194,10 @@ public class ContainerTag extends Tag<ContainerTag> {
         }
         renderCloseTag(writer);
     }
+    
+    public List<DomContent> getChildren()
+    {
+        return children;
+    }
 
 }
