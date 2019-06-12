@@ -83,7 +83,7 @@ public abstract class Tag<T extends Tag<T>> extends DomContent{
     }
 
     public String attrValue(String param) {
-        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getName).findFirst().orElse(null);
+        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).findFirst().orElse(null);
     }
 
     public boolean hasAttr(String param) {
