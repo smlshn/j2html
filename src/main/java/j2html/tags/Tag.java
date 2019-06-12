@@ -1,5 +1,6 @@
 package j2html.tags;
 
+
 import j2html.attributes.Attr;
 import j2html.attributes.Attribute;
 import java.io.IOException;
@@ -15,349 +16,322 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
         this.attributes = new ArrayList<>();
     }
 
+
     public String getTagName() {
         return this.tagName;
     }
 
     protected boolean hasTagName() {
-        return tagName != null && !tagName.isEmpty();
+        return this.tagName != null && !this.tagName.isEmpty();
     }
 
-    String renderOpenTag() throws IOException {
+    String renderOpenTag() throws IOException
+    {
         StringBuilder stringBuilder = new StringBuilder();
-        renderOpenTag(stringBuilder, null);
+        this.renderOpenTag(stringBuilder, (Object)null);
         return stringBuilder.toString();
     }
 
     String renderCloseTag() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
-        renderCloseTag(stringBuilder);
+        this.renderCloseTag(stringBuilder);
         return stringBuilder.toString();
     }
 
-    protected void renderOpenTag(Appendable writer, Object model) throws IOException {
-        if (!hasTagName()) { // avoid <null> and <> tags
-            return;
+    void renderOpenTag(Appendable writer, Object model) throws IOException {
+        if (this.hasTagName()) {
+            writer.append("<").append(this.tagName);
+            Iterator var3 = this.attributes.iterator();
+
+            while(var3.hasNext()) {
+                Attribute attribute = (Attribute)var3.next();
+                attribute.renderModel(writer, model);
+            }
+
+            writer.append(">");
         }
-        writer.append("<").append(tagName);
-        for (Attribute attribute : attributes) {
-            attribute.renderModel(writer, model);
-        }
-        writer.append(">");
     }
 
-    protected void renderCloseTag(Appendable writer) throws IOException {
-        if (!hasTagName()) { // avoid <null> and <> tags
-            return;
+    void renderCloseTag(Appendable writer) throws IOException {
+        if (this.hasTagName()) {
+            writer.append("</");
+            writer.append(this.tagName);
+            writer.append(">");
         }
-        writer.append("</");
-        writer.append(tagName);
-        writer.append(">");
     }
 
-    protected ArrayList<Attribute> getAttributes() {
-        return attributes;
-    }
-       
+
     public String attrValue(String param) {
-        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).findFirst().orElse(null);
+        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getName).findFirst().orElse(null);
     }
-       
+
     public boolean hasAttr(String param) {
         return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).map(Objects::nonNull).findFirst().orElse(false);
     }
 
-    /**
-     * Sets an attribute on an element
-     *
-     * @param name  the attribute
-     * @param value the attribute value
-     */
+    ArrayList<Attribute> getAttributes() {
+        return this.attributes;
+    }
+
     boolean setAttribute(String name, String value) {
         if (value == null) {
-            return attributes.add(new Attribute(name));
+            return this.attributes.add(new Attribute(name));
+        } else {
+            Iterator var3 = this.attributes.iterator();
+
+            Attribute attribute;
+            do {
+                if (!var3.hasNext()) {
+                    return this.attributes.add(new Attribute(name, value));
+                }
+
+                attribute = (Attribute)var3.next();
+            } while(!attribute.getName().equals(name));
+
+            attribute.setValue(value);
+            return true;
         }
-        for (Attribute attribute : attributes) {
-            if (attribute.getName().equals(name)) {
-                attribute.setValue(value); // update with new value
-                return true;
-            }
-        }
-        return attributes.add(new Attribute(name, value));
     }
 
-    /**
-     * Sets a custom attribute
-     *
-     * @param attribute the attribute name
-     * @param value     the attribute value
-     * @return itself for easy chaining
-     */
     public T attr(String attribute, Object value) {
-        setAttribute(attribute, value == null ? null : String.valueOf(value));
-        return (T) this;
+        this.setAttribute(attribute, value == null ? null : String.valueOf(value));
+        return this;
     }
 
-    /**
-     * Adds the specified attribute. If the Tag previously contained an attribute with the same name, the old attribute is replaced by the specified attribute.
-     *
-     * @param attribute the attribute
-     * @return itself for easy chaining
-     */
     public T attr(Attribute attribute) {
-        Iterator<Attribute> iterator = attributes.iterator();
+        Iterator<Attribute> iterator = this.attributes.iterator();
         String name = attribute.getName();
         if (name != null) {
-            // name == null is allowed, but those Attributes are not rendered. So we add them anyway.
-            while (iterator.hasNext()) {
-                Attribute existingAttribute = iterator.next();
+            while(iterator.hasNext()) {
+                Attribute existingAttribute = (Attribute)iterator.next();
                 if (existingAttribute.getName().equals(name)) {
                     iterator.remove();
                 }
             }
         }
-        attributes.add(attribute);
-        return (T) this;
+
+        this.attributes.add(attribute);
+        return this;
     }
 
-    /**
-     * Sets a custom attribute without value
-     *
-     * @param attribute the attribute name
-     * @return itself for easy chaining
-     * @see Tag#attr(String, Object)
-     */
     public T attr(String attribute) {
-        return attr(attribute, null);
+        return this.attr(attribute, (Object)null);
     }
 
-    /**
-     * Call attr-method based on condition
-     * {@link #attr(String attribute, Object value)}
-     *
-     * @param condition the condition
-     * @param attribute the attribute name
-     * @param value     the attribute value
-     * @return itself for easy chaining
-     */
     public T condAttr(boolean condition, String attribute, String value) {
-        return (condition ? attr(attribute, value) : (T) this);
+        return condition ? this.attr(attribute, value) : this;
     }
 
-    @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Tag)) {
-            return false;
-        }
-        return ((Tag) obj).render().equals(this.render());
+        return obj != null && obj instanceof Tag ? ((Tag)obj).render().equals(this.render()) : false;
     }
 
-    /**
-     * Convenience methods that call attr with predefined attributes
-     *
-     * @return itself for easy chaining
-     */
     public T withClasses(String... classes) {
         StringBuilder sb = new StringBuilder();
-        for (String s : classes) {
+        String[] var3 = classes;
+        int var4 = classes.length;
+
+        for(int var5 = 0; var5 < var4; ++var5) {
+            String s = var3[var5];
             sb.append(s != null ? s : "").append(" ");
         }
-        return attr(Attr.CLASS, sb.toString().trim());
+
+        return this.attr("class", sb.toString().trim());
     }
 
     public T isAutoComplete() {
-        return attr(Attr.AUTOCOMPLETE, null);
+        return this.attr("autocomplete", (Object)null);
     }
 
     public T isAutoFocus() {
-        return attr(Attr.AUTOFOCUS, null);
+        return this.attr("autofocus", (Object)null);
     }
 
     public T isHidden() {
-        return attr(Attr.HIDDEN, null);
+        return this.attr("hidden", (Object)null);
     }
 
     public T isRequired() {
-        return attr(Attr.REQUIRED, null);
+        return this.attr("required", (Object)null);
     }
 
     public T withAlt(String alt) {
-        return attr(Attr.ALT, alt);
+        return this.attr("alt", alt);
     }
 
     public T withAction(String action) {
-        return attr(Attr.ACTION, action);
+        return this.attr("action", action);
     }
 
     public T withCharset(String charset) {
-        return attr(Attr.CHARSET, charset);
+        return this.attr("charset", charset);
     }
 
     public T withClass(String className) {
-        return attr(Attr.CLASS, className);
+        return this.attr("class", className);
     }
 
     public T withContent(String content) {
-        return attr(Attr.CONTENT, content);
+        return this.attr("content", content);
     }
 
     public T withDir(String dir) {
-        return attr(Attr.DIR, dir);
+        return this.attr("dir", dir);
     }
 
     public T withHref(String href) {
-        return attr(Attr.HREF, href);
+        return this.attr("href", href);
     }
 
     public T withId(String id) {
-        return attr(Attr.ID, id);
+        return this.attr("id", id);
     }
 
     public T withData(String dataAttr, String value) {
-        return attr(Attr.DATA + "-" + dataAttr, value);
+        return this.attr("data-" + dataAttr, value);
     }
 
     public T withLang(String lang) {
-        return attr(Attr.LANG, lang);
+        return this.attr("lang", lang);
     }
 
     public T withMethod(String method) {
-        return attr(Attr.METHOD, method);
+        return this.attr("method", method);
     }
 
     public T withName(String name) {
-        return attr(Attr.NAME, name);
+        return this.attr("name", name);
     }
 
     public T withPlaceholder(String placeholder) {
-        return attr(Attr.PLACEHOLDER, placeholder);
+        return this.attr("placeholder", placeholder);
     }
 
     public T withTarget(String target) {
-        return attr(Attr.TARGET, target);
+        return this.attr("target", target);
     }
 
     public T withTitle(String title) {
-        return attr(Attr.TITLE, title);
+        return this.attr("title", title);
     }
 
     public T withType(String type) {
-        return attr(Attr.TYPE, type);
+        return this.attr("type", type);
     }
 
     public T withRel(String rel) {
-        return attr(Attr.REL, rel);
+        return this.attr("rel", rel);
     }
 
     public T withRole(String role) {
-        return attr(Attr.ROLE, role);
+        return this.attr("role", role);
     }
 
     public T withSrc(String src) {
-        return attr(Attr.SRC, src);
+        return this.attr("src", src);
     }
 
     public T withStyle(String style) {
-        return attr(Attr.STYLE, style);
+        return this.attr("style", style);
     }
 
     public T withValue(String value) {
-        return attr(Attr.VALUE, value);
+        return this.attr("value", value);
     }
 
     public T withCondAutoComplete(boolean condition) {
-        return condAttr(condition, Attr.AUTOCOMPLETE, null);
+        return this.condAttr(condition, "autocomplete", (String)null);
     }
 
     public T withCondAutoFocus(boolean condition) {
-        return condAttr(condition, Attr.AUTOFOCUS, null);
+        return this.condAttr(condition, "autofocus", (String)null);
     }
 
     public T withCondHidden(boolean condition) {
-        return condAttr(condition, Attr.HIDDEN, null);
+        return this.condAttr(condition, "hidden", (String)null);
     }
 
     public T withCondRequired(boolean condition) {
-        return condAttr(condition, Attr.REQUIRED, null);
+        return this.condAttr(condition, "required", (String)null);
     }
 
     public T withCondAlt(boolean condition, String alt) {
-        return condAttr(condition, Attr.ALT, alt);
+        return this.condAttr(condition, "alt", alt);
     }
 
     public T withCondAction(boolean condition, String action) {
-        return condAttr(condition, Attr.ACTION, action);
+        return this.condAttr(condition, "action", action);
     }
 
     public T withCharset(boolean condition, String charset) {
-        return condAttr(condition, Attr.CHARSET, charset);
+        return this.condAttr(condition, "charset", charset);
     }
 
     public T withCondClass(boolean condition, String className) {
-        return condAttr(condition, Attr.CLASS, className);
+        return this.condAttr(condition, "class", className);
     }
 
     public T withCondContent(boolean condition, String content) {
-        return condAttr(condition, Attr.CONTENT, content);
+        return this.condAttr(condition, "content", content);
     }
 
     public T withCondDir(boolean condition, String dir) {
-        return condAttr(condition, Attr.DIR, dir);
+        return this.condAttr(condition, "dir", dir);
     }
 
     public T withCondHref(boolean condition, String href) {
-        return condAttr(condition, Attr.HREF, href);
+        return this.condAttr(condition, "href", href);
     }
 
     public T withCondId(boolean condition, String id) {
-        return condAttr(condition, Attr.ID, id);
+        return this.condAttr(condition, "id", id);
     }
 
     public T withCondData(boolean condition, String dataAttr, String value) {
-        return condAttr(condition, Attr.DATA + "-" + dataAttr, value);
+        return this.condAttr(condition, "data-" + dataAttr, value);
     }
 
     public T withCondLang(boolean condition, String lang) {
-        return condAttr(condition, Attr.LANG, lang);
+        return this.condAttr(condition, "lang", lang);
     }
 
     public T withCondMethod(boolean condition, String method) {
-        return condAttr(condition, Attr.METHOD, method);
+        return this.condAttr(condition, "method", method);
     }
 
     public T withCondName(boolean condition, String name) {
-        return condAttr(condition, Attr.NAME, name);
+        return this.condAttr(condition, "name", name);
     }
 
     public T withCondPlaceholder(boolean condition, String placeholder) {
-        return condAttr(condition, Attr.PLACEHOLDER, placeholder);
+        return this.condAttr(condition, "placeholder", placeholder);
     }
 
     public T withCondTarget(boolean condition, String target) {
-        return condAttr(condition, Attr.TARGET, target);
+        return this.condAttr(condition, "target", target);
     }
 
     public T withCondTitle(boolean condition, String title) {
-        return condAttr(condition, Attr.TITLE, title);
+        return this.condAttr(condition, "title", title);
     }
 
     public T withCondType(boolean condition, String type) {
-        return condAttr(condition, Attr.TYPE, type);
+        return this.condAttr(condition, "type", type);
     }
 
     public T withCondRel(boolean condition, String rel) {
-        return condAttr(condition, Attr.REL, rel);
+        return this.condAttr(condition, "rel", rel);
     }
 
     public T withCondSrc(boolean condition, String src) {
-        return condAttr(condition, Attr.SRC, src);
+        return this.condAttr(condition, "src", src);
     }
 
     public T withCondStyle(boolean condition, String style) {
-        return condAttr(condition, Attr.STYLE, style);
+        return this.condAttr(condition, "style", style);
     }
 
     public T withCondValue(boolean condition, String value) {
-        return condAttr(condition, Attr.VALUE, value);
+        return this.condAttr(condition, "value", value);
     }
 }
