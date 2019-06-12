@@ -1,7 +1,5 @@
 package j2html.tags;
 
-
-import j2html.attributes.Attr;
 import j2html.attributes.Attribute;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,9 +12,8 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
 
     protected Tag(String tagName) {
         this.tagName = tagName;
-        this.attributes = new ArrayList<>();
+        this.attributes = new ArrayList();
     }
-
 
     public String getTagName() {
         return this.tagName;
@@ -26,8 +23,7 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
         return this.tagName != null && !this.tagName.isEmpty();
     }
 
-    String renderOpenTag() throws IOException
-    {
+    String renderOpenTag() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         this.renderOpenTag(stringBuilder, (Object)null);
         return stringBuilder.toString();
@@ -61,15 +57,6 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
         }
     }
 
-
-    public String attrValue(String param) {
-        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getName).findFirst().orElse(null);
-    }
-
-    public boolean hasAttr(String param) {
-        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).map(Objects::nonNull).findFirst().orElse(false);
-    }
-
     ArrayList<Attribute> getAttributes() {
         return this.attributes;
     }
@@ -92,6 +79,14 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
             attribute.setValue(value);
             return true;
         }
+    }
+
+    public String attrValue(String param) {
+        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getName).findFirst().orElse(null);
+    }
+
+    public boolean hasAttr(String param) {
+        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).map(Objects::nonNull).findFirst().orElse(false);
     }
 
     public T attr(String attribute, Object value) {
