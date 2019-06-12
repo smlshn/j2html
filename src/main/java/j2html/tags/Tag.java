@@ -6,6 +6,7 @@ import j2html.attributes.Attribute;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 
 public abstract class Tag<T extends Tag<T>> extends DomContent {
     protected String tagName;
