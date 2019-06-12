@@ -3,6 +3,7 @@ package j2html.attributes;
 import j2html.Config;
 import j2html.tags.Renderable;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Attribute implements Renderable {
     private String name;
