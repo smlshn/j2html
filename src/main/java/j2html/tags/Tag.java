@@ -55,8 +55,16 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
         writer.append(">");
     }
 
-    public ArrayList<Attribute> getAttributes() {
+    protected ArrayList<Attribute> getAttributes() {
         return attributes;
+    }
+       
+    public String attrValue(String param) {
+        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).findFirst().orElse(null);
+    }
+       
+    public boolean hasAttr(String param) {
+        return getAttributes().stream().filter( t -> t.getName().equals(param)).map(Attribute::getValue).map(Objects::nonNull).findFirst().orElse(false);
     }
 
     /**
