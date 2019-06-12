@@ -1,12 +1,13 @@
 package j2html.tags;
 
+import j2html.attributes.Attr;
 import j2html.attributes.Attribute;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 
-public abstract class Tag<T extends Tag<T>> extends DomContent {
+public abstract class Tag<T extends Tag<T>> extends DomContent{
     protected String tagName;
     private ArrayList<Attribute> attributes;
 
@@ -91,7 +92,7 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
 
     public T attr(String attribute, Object value) {
         this.setAttribute(attribute, value == null ? null : String.valueOf(value));
-        return this;
+        return (T)this;
     }
 
     public T attr(Attribute attribute) {
@@ -107,7 +108,7 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
         }
 
         this.attributes.add(attribute);
-        return this;
+        return (T)this;
     }
 
     public T attr(String attribute) {
@@ -115,7 +116,7 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
     }
 
     public T condAttr(boolean condition, String attribute, String value) {
-        return condition ? this.attr(attribute, value) : this;
+        return condition ? this.attr(attribute, value) : (T)this;
     }
 
     public boolean equals(Object obj) {
