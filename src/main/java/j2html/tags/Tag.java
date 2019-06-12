@@ -55,7 +55,7 @@ public abstract class Tag<T extends Tag<T>> extends DomContent {
         writer.append(">");
     }
 
-    protected ArrayList<Attribute> getAttributes() {
+    public ArrayList<Attribute> getAttributes() {
         return attributes;
     }
 
